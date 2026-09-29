@@ -1,0 +1,53 @@
+{
+  "last_reminder": 1790612205528,
+  "cached_at": 1790611095305,
+  "version": "7.10.0",
+  "cli_path": "/Users/kristoffer/wedding/node_modules/.bin/prisma",
+  "output": {
+    "product": "prisma",
+    "previous_version": "7.10.0",
+    "checkpoint_version": 4,
+    "local_timestamp_without_timezone": "2026-09-28T23:58:14Z",
+    "current_version": "8.0.0-rc.17",
+    "current_release_date": 1790280146,
+    "client_event_id": "ac6ee625-91b8-40bc-9c3d-8b7a9585a99d",
+    "current_download_url": "https://github.com/prisma/prisma",
+    "package": "prisma",
+    "release_tag": "latest",
+    "install_command": "npm install --save-dev prisma",
+    "schema_providers": [
+      "mysql"
+    ],
+    "schema_preview_features": [],
+    "schema_generators_providers": [
+      "prisma-client"
+    ],
+    "current_changelog_url": "https://github.com/prisma/prisma",
+    "outdated": true,
+    "project_website": "https://prisma.io",
+    "alerts": []
+  },
+  "product": "prisma",
+  "cli_install_type": "local",
+  "local_timestamp": "2026-09-29T11:04:16+08:00",
+  "project_hash": "7964bd29",
+  "cli_path_hash": "c455f800",
+  "endpoint": "https://checkpoint.prisma.io",
+  "arch": "arm64",
+  "os": "darwin",
+  "node_version": "v26.7.0",
+  "command": "generate",
+  "schema_providers": [
+    "mysql"
+  ],
+  "schema_preview_features": [],
+  "schema_generators_providers": [
+    "prisma-client"
+  ],
+  "cache_file": "200/Library/Caches/checkpoint-nodejs/prisma-c455f800",
+  "cache_duration": 43200000,
+  "remind_duration": 172800000,
+  "timeout": 5000,
+  "unref": true,
+  "child_path": "/Users/kristoffer/wedding/node_modules/prisma/build/child"
+}

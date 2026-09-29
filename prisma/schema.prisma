@@ -1,0 +1,370 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum WeddingStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum WeddingMemberRole {
+  OWNER
+  ADMIN
+  EDITOR
+}
+
+enum RSVPStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum InviteStatus {
+  NOT_SENT
+  SENT
+  OPENED
+}
+
+enum GiftType {
+  QRPH
+  BANK
+  GCASH
+  MAYA
+  REGISTRY
+  CUSTOM
+}
+
+enum SectionType {
+  HERO
+  COUNTDOWN
+  STORY
+  EVENTS
+  ENTOURAGE
+  DRESS_CODE
+  GALLERY
+  RSVP
+  GIFTS
+  FAQ
+}
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique @db.VarChar(191)
+  emailVerified Boolean  @default(false)
+  image         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions       Session[]
+  accounts       Account[]
+  weddingMembers WeddingMember[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique @db.VarChar(191)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?  @db.VarChar(191)
+  userAgent String?  @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @db.VarChar(191)
+  providerId            String    @db.VarChar(191)
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String   @db.VarChar(191)
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Wedding {
+  id             String        @id @default(cuid())
+  publicId       String        @unique @db.VarChar(32)
+  slug           String        @unique @db.VarChar(80)
+  partnerOneName String        @db.VarChar(120)
+  partnerTwoName String        @db.VarChar(120)
+  weddingDate    DateTime?
+  timezone       String        @default("Asia/Manila") @db.VarChar(64)
+  location       String?       @db.VarChar(255)
+  description    String?       @db.Text
+  themeId        String        @default("rustic") @db.VarChar(40)
+  status         WeddingStatus @default(DRAFT)
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  members      WeddingMember[]
+  themeSettings ThemeSettings?
+  sections     WeddingSection[]
+  events       Event[]
+  guestGroups  GuestGroup[]
+  guestParties GuestParty[]
+  storyItems   StoryItem[]
+  galleryItems GalleryItem[]
+  faqItems     FaqItem[]
+  giftAccounts GiftAccount[]
+}
+
+model WeddingMember {
+  id        String            @id @default(cuid())
+  weddingId String
+  userId    String
+  role      WeddingMemberRole
+  createdAt DateTime          @default(now())
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([weddingId, userId])
+  @@index([userId])
+}
+
+model ThemeSettings {
+  id              String   @id @default(cuid())
+  weddingId       String   @unique
+  primaryColor    String?  @db.VarChar(16)
+  secondaryColor  String?  @db.VarChar(16)
+  backgroundColor String?  @db.VarChar(16)
+  textColor       String?  @db.VarChar(16)
+  accentColor     String?  @db.VarChar(16)
+  headingFont     String?  @db.VarChar(80)
+  bodyFont        String?  @db.VarChar(80)
+  scriptFont      String?  @db.VarChar(80)
+  customConfigJson Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+}
+
+model WeddingSection {
+  id        String      @id @default(cuid())
+  weddingId String
+  type      SectionType
+  enabled   Boolean     @default(true)
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@unique([weddingId, type])
+  @@index([weddingId, sortOrder])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  weddingId   String
+  name        String    @db.VarChar(120)
+  description String?   @db.Text
+  startAt     DateTime
+  endAt       DateTime?
+  venueName   String?   @db.VarChar(160)
+  address     String?   @db.VarChar(255)
+  mapUrl      String?   @db.VarChar(500)
+  dressCode   String?   @db.VarChar(120)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId, sortOrder])
+}
+
+model GuestGroup {
+  id        String   @id @default(cuid())
+  weddingId String
+  name      String   @db.VarChar(120)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wedding Wedding      @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  parties GuestParty[]
+
+  @@unique([weddingId, name])
+}
+
+model GuestParty {
+  id              String       @id @default(cuid())
+  weddingId       String
+  guestGroupId    String?
+  name            String       @db.VarChar(160)
+  token           String       @unique @db.VarChar(32)
+  maxGuests       Int
+  inviteStatus    InviteStatus @default(NOT_SENT)
+  rsvpStatus      RSVPStatus   @default(PENDING)
+  inviteSentAt    DateTime?
+  inviteOpenedAt  DateTime?
+  lastViewedAt    DateTime?
+  rsvpSubmittedAt DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  wedding    Wedding         @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  guestGroup GuestGroup?     @relation(fields: [guestGroupId], references: [id], onDelete: SetNull)
+  guests     Guest[]
+  rsvp       RSVP?
+  views      InvitationView[]
+
+  @@index([weddingId])
+  @@index([weddingId, rsvpStatus])
+  @@index([weddingId, inviteStatus])
+}
+
+model Guest {
+  id           String   @id @default(cuid())
+  guestPartyId String
+  firstName    String   @db.VarChar(80)
+  lastName     String   @db.VarChar(80)
+  email        String?  @db.VarChar(191)
+  phone        String?  @db.VarChar(40)
+  primaryGuest Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  guestParty GuestParty @relation(fields: [guestPartyId], references: [id], onDelete: Cascade)
+
+  @@index([guestPartyId])
+}
+
+model RSVP {
+  id            String     @id @default(cuid())
+  guestPartyId String     @unique
+  status        RSVPStatus
+  attendeeCount Int        @default(0)
+  message       String?    @db.Text
+  submittedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  guestParty GuestParty     @relation(fields: [guestPartyId], references: [id], onDelete: Cascade)
+  attendees  RSVPAttendee[]
+}
+
+model RSVPAttendee {
+  id                  String   @id @default(cuid())
+  rsvpId              String
+  name                String   @db.VarChar(160)
+  mealPreference      String?  @db.VarChar(80)
+  dietaryRequirements String?  @db.Text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  rsvp RSVP @relation(fields: [rsvpId], references: [id], onDelete: Cascade)
+
+  @@index([rsvpId])
+}
+
+model StoryItem {
+  id          String   @id @default(cuid())
+  weddingId   String
+  title       String   @db.VarChar(160)
+  description String?  @db.Text
+  date        String?  @db.VarChar(40)
+  imageUrl    String?  @db.VarChar(500)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId, sortOrder])
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  weddingId String
+  imageUrl  String   @db.VarChar(500)
+  caption   String?  @db.VarChar(255)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId, sortOrder])
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  weddingId String
+  question  String   @db.VarChar(200)
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId, sortOrder])
+}
+
+model GiftAccount {
+  id                  String   @id @default(cuid())
+  weddingId           String
+  type                GiftType
+  displayName         String   @db.VarChar(120)
+  accountName         String?  @db.VarChar(160)
+  institutionName     String?  @db.VarChar(160)
+  maskedAccountNumber String?  @db.VarChar(32)
+  qrImageUrl          String?  @db.VarChar(500)
+  externalUrl         String?  @db.VarChar(500)
+  description         String?  @db.Text
+  sortOrder           Int      @default(0)
+  isEnabled           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  wedding Wedding @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([weddingId, sortOrder])
+}
+
+model InvitationView {
+  id           String   @id @default(cuid())
+  guestPartyId String
+  viewedAt     DateTime @default(now())
+  userAgent    String?  @db.VarChar(255)
+  ipHash       String?  @db.VarChar(64)
+  createdAt    DateTime @default(now())
+
+  guestParty GuestParty @relation(fields: [guestPartyId], references: [id], onDelete: Cascade)
+
+  @@index([guestPartyId, viewedAt])
+}
