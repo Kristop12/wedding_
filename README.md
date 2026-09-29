@@ -111,7 +111,7 @@ QR images upload to local `storage/` when the R2 variables are empty, and to Clo
 Hostinger Business and Cloud plans can run this app as a Node.js website with a MySQL database on the same account. The app listens on Hostinger’s `PORT` and applies Prisma migrations when it starts.
 
 1. In hPanel, open Websites, then Databases, then Management. Create a MySQL database and save the database name, username, and password. From the app, the host is `localhost` and the port is `3306`.
-2. Add a website and choose Node.js. Node.js 20 or 22 is fine. Build command: `npm run build`. Start command: `npm start`.
+2. Add a website and choose Node.js. Node.js 20 or 22 is fine. Build command: `npm run build`. Start command: `npm start`. The build uses Webpack because Hostinger’s system libraries cannot run Next.js’s native compiler.
 3. Add these environment variables before the first deploy, then deploy again if the first build ran without them:
 
 | Name | Production value |
