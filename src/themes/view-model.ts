@@ -64,6 +64,11 @@ export type ThemeWeddingSource = {
     imageUrl: string | null;
     externalUrl: string | null;
   }[];
+  dressCodeImages: {
+    id: string;
+    imageUrl: string;
+    caption: string | null;
+  }[];
   entourageGuests: { firstName: string; lastName: string }[];
   greetingNames: string[];
 };
@@ -178,6 +183,11 @@ export function buildThemeViewModel(
       caption: item.caption,
     })),
     dressCodes,
+    dressCodeImages: wedding.dressCodeImages.map((item) => ({
+      id: item.id,
+      imageUrl: item.imageUrl,
+      caption: item.caption,
+    })),
     entourage: wedding.entourageGuests.map((guest) => `${guest.firstName} ${guest.lastName}`),
     faqs: wedding.faqItems.map((item) => ({
       id: item.id,

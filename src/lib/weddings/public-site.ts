@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { prisma } from "@/lib/db/prisma";
 import { isWeddingSlug } from "@/lib/weddings/slug";
+import { dressFileName } from "@/lib/storage/objects";
 import { buildThemeViewModel } from "@/themes/view-model";
 import type { ThemeViewModel } from "@/themes/types";
 
@@ -18,6 +19,7 @@ export const loadPublicWedding = cache(async function loadPublicWedding(slug: st
       storyItems: { orderBy: { sortOrder: "asc" } },
       galleryItems: { orderBy: { sortOrder: "asc" } },
       faqItems: { orderBy: { sortOrder: "asc" } },
+      dressCodeImages: { orderBy: { sortOrder: "asc" } },
     },
   });
 
@@ -56,6 +58,19 @@ export const loadPublicWedding = cache(async function loadPublicWedding(slug: st
     galleryItems: wedding.galleryItems,
     faqItems: wedding.faqItems,
     giftAccounts: [],
+    dressCodeImages: wedding.dressCodeImages.flatMap((item) => {
+      const file = dressFileName(item.imageKey);
+      if (!file || item.imageKey !== `dress/${file}`) {
+        return [];
+      }
+      return [
+        {
+          id: item.id,
+          imageUrl: `/w/${slug}/dress/${file}`,
+          caption: item.caption,
+        },
+      ];
+    }),
     entourageGuests: entourage,
     greetingNames: [],
   });
@@ -76,5 +91,6 @@ function publicModel(model: ThemeViewModel): ThemeViewModel {
     story: model.story.map((item, index) => ({ ...item, id: `story-${index}` })),
     gallery: model.gallery.map((item, index) => ({ ...item, id: `photo-${index}` })),
     faqs: model.faqs.map((item, index) => ({ ...item, id: `faq-${index}` })),
+    dressCodeImages: model.dressCodeImages.map((item, index) => ({ ...item, id: `dress-${index}` })),
   };
 }

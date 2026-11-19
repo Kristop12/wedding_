@@ -82,6 +82,11 @@ export type ThemeViewModel = {
     caption: string | null;
   }[];
   dressCodes: string[];
+  dressCodeImages: {
+    id: string;
+    imageUrl: string;
+    caption: string | null;
+  }[];
   entourage: string[];
   faqs: { id: string; question: string; answer: string }[];
   gifts: {

@@ -40,12 +40,19 @@ export function RegisterForm() {
     }
 
     setPending(true);
-    const result = await authClient.signUp.email({
-      name: parsed.data.name,
-      email: parsed.data.email,
-      password: parsed.data.password,
-      callbackURL: "/dashboard",
-    });
+    let result: Awaited<ReturnType<typeof authClient.signUp.email>>;
+    try {
+      result = await authClient.signUp.email({
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        callbackURL: "/dashboard",
+      });
+    } catch {
+      setPending(false);
+      setError("Could not reach the server. Stay on this site address and try again.");
+      return;
+    }
 
     if (result.error) {
       setPending(false);

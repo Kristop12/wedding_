@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/env";
 import type { ThemeViewModel } from "@/themes/types";
-import { qrFileName } from "@/lib/storage/objects";
+import { dressFileName, qrFileName } from "@/lib/storage/objects";
 import { buildThemeViewModel } from "@/themes/view-model";
 
 const TOKEN = /^[A-Z0-9]{8,32}$/;
@@ -31,6 +31,7 @@ export async function loadInvitation(token: string) {
           storyItems: { orderBy: { sortOrder: "asc" } },
           galleryItems: { orderBy: { sortOrder: "asc" } },
           faqItems: { orderBy: { sortOrder: "asc" } },
+          dressCodeImages: { orderBy: { sortOrder: "asc" } },
           giftAccounts: {
             where: { isEnabled: true },
             orderBy: { sortOrder: "asc" },
@@ -99,6 +100,19 @@ export async function loadInvitation(token: string) {
         imageUrl: file ? `/i/${party.token}/qr/${file}` : null,
       };
     }),
+    dressCodeImages: wedding.dressCodeImages.flatMap((item) => {
+      const file = dressFileName(item.imageKey);
+      if (!file || item.imageKey !== `dress/${file}`) {
+        return [];
+      }
+      return [
+        {
+          id: item.id,
+          imageUrl: `/i/${party.token}/dress/${file}`,
+          caption: item.caption,
+        },
+      ];
+    }),
     entourageGuests: entourage,
     greetingNames: party.guests.map((guest) => guest.firstName),
     faqItems: wedding.faqItems,
@@ -131,6 +145,7 @@ function withoutInternalIds(model: ThemeViewModel): ThemeViewModel {
     gallery: model.gallery.map((item, index) => ({ ...item, id: `photo-${index}` })),
     faqs: model.faqs.map((item, index) => ({ ...item, id: `faq-${index}` })),
     gifts: model.gifts.map((gift, index) => ({ ...gift, id: `gift-${index}` })),
+    dressCodeImages: model.dressCodeImages.map((item, index) => ({ ...item, id: `dress-${index}` })),
   };
 }
 

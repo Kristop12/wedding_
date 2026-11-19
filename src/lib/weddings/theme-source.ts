@@ -1,4 +1,4 @@
-import { qrFileName } from "@/lib/storage/objects";
+import { dressFileName, qrFileName } from "@/lib/storage/objects";
 import type { loadThemeWorkspace } from "@/lib/weddings/queries";
 import type { ThemeWeddingSource } from "@/themes/view-model";
 
@@ -30,6 +30,19 @@ export function toThemeSource(wedding: LoadedWedding): ThemeWeddingSource {
       externalUrl: gift.externalUrl,
       imageUrl: qrFileName(gift.qrImageUrl) ? `/dashboard/gifts/qr/${gift.id}` : null,
     })),
+    dressCodeImages: wedding.dressCodeImages.flatMap((item) => {
+      const file = dressFileName(item.imageKey);
+      if (!file || item.imageKey !== `dress/${file}`) {
+        return [];
+      }
+      return [
+        {
+          id: item.id,
+          imageUrl: `/dashboard/dress-code/image/${item.id}`,
+          caption: item.caption,
+        },
+      ];
+    }),
     entourageGuests: wedding.guestParties
       .filter((party) => party.guestGroup?.name === "Entourage")
       .flatMap((party) => party.guests),

@@ -289,18 +289,42 @@ function Entourage({ model, tone }: { model: ThemeViewModel; tone: SiteTone }) {
 }
 
 function DressCode({ model, tone }: { model: ThemeViewModel; tone: SiteTone }) {
+  const hasText = model.dressCodes.length > 0;
+  const hasImages = model.dressCodeImages.length > 0;
+
   return (
     <Section id={ANCHORS.DRESS_CODE} title="Dress code" tone={tone}>
-      {model.dressCodes.length === 0 ? (
+      {!hasText && !hasImages ? (
         <p className="text-center text-sm">Dress code will appear with the events.</p>
       ) : (
-        <ul className="space-y-2 text-center">
-          {model.dressCodes.map((code) => (
-            <li key={code} className="font-[family-name:var(--theme-heading)] text-lg">
-              {code}
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-8">
+          {hasText ? (
+            <ul className="space-y-2 text-center">
+              {model.dressCodes.map((code) => (
+                <li key={code} className="font-[family-name:var(--theme-heading)] text-lg">
+                  {code}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {hasImages ? (
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {model.dressCodeImages.map((item) => (
+                <li key={item.id} className="text-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.imageUrl}
+                    alt={item.caption ?? "Dress code reference"}
+                    className="mx-auto w-full max-w-xs object-cover"
+                    style={{ borderRadius: "var(--theme-radius)" }}
+                    loading="lazy"
+                  />
+                  {item.caption ? <p className="mt-2 text-sm leading-6">{item.caption}</p> : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       )}
     </Section>
   );

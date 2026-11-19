@@ -4,11 +4,13 @@ import path from "node:path";
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { env } from "@/lib/env";
 
-const MAX_QR_BYTES = 2 * 1024 * 1024;
-const QR_FILE = /^[a-f0-9]{32}\.(jpg|png|webp)$/;
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const IMAGE_FILE = /^[a-f0-9]{32}\.(jpg|png|webp)$/;
+const QR_PREFIX = "qr";
+const DRESS_PREFIX = "dress";
 
-export function inspectQrImage(bytes: Uint8Array) {
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_QR_BYTES) {
+export function inspectImage(bytes: Uint8Array) {
+  if (bytes.byteLength === 0 || bytes.byteLength > MAX_IMAGE_BYTES) {
     return null;
   }
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
@@ -33,39 +35,76 @@ export function inspectQrImage(bytes: Uint8Array) {
   return null;
 }
 
-export function qrFileName(storageKey: string | null) {
+/** @deprecated Prefer inspectImage */
+export const inspectQrImage = inspectImage;
+
+export function imageFileName(storageKey: string | null) {
   const name = storageKey?.split("/").pop() ?? "";
-  return QR_FILE.test(name) ? name : null;
+  return IMAGE_FILE.test(name) ? name : null;
+}
+
+export function qrFileName(storageKey: string | null) {
+  return imageFileName(storageKey);
+}
+
+export function dressFileName(storageKey: string | null) {
+  return imageFileName(storageKey);
 }
 
 export async function saveQrImage(bytes: Uint8Array, extension: "jpg" | "png" | "webp", contentType: string) {
-  const key = `qr/${randomBytes(16).toString("hex")}.${extension}`;
+  const key = `${QR_PREFIX}/${randomBytes(16).toString("hex")}.${extension}`;
+  await putObject(key, bytes, contentType);
+  return key;
+}
+
+export async function saveDressImage(bytes: Uint8Array, extension: "jpg" | "png" | "webp", contentType: string) {
+  const key = `${DRESS_PREFIX}/${randomBytes(16).toString("hex")}.${extension}`;
   await putObject(key, bytes, contentType);
   return key;
 }
 
 export async function readQrImage(storageKey: string) {
-  const name = qrFileName(storageKey);
-  if (!name || storageKey !== `qr/${name}`) {
+  const name = imageFileName(storageKey);
+  if (!name || storageKey !== `${QR_PREFIX}/${name}`) {
     return null;
   }
+  return readStoredImage(storageKey);
+}
+
+export async function readDressImage(storageKey: string) {
+  const name = imageFileName(storageKey);
+  if (!name || storageKey !== `${DRESS_PREFIX}/${name}`) {
+    return null;
+  }
+  return readStoredImage(storageKey);
+}
+
+export async function deleteQrImage(storageKey: string | null) {
+  const name = imageFileName(storageKey);
+  if (!name || !storageKey || storageKey !== `${QR_PREFIX}/${name}`) {
+    return;
+  }
+  await deleteObject(storageKey);
+}
+
+export async function deleteDressImage(storageKey: string | null) {
+  const name = imageFileName(storageKey);
+  if (!name || !storageKey || storageKey !== `${DRESS_PREFIX}/${name}`) {
+    return;
+  }
+  await deleteObject(storageKey);
+}
+
+async function readStoredImage(storageKey: string) {
   const bytes = await getObject(storageKey);
   if (!bytes) {
     return null;
   }
-  const inspected = inspectQrImage(bytes);
+  const inspected = inspectImage(bytes);
   if (!inspected) {
     return null;
   }
   return { bytes, contentType: inspected.contentType };
-}
-
-export async function deleteQrImage(storageKey: string | null) {
-  const name = qrFileName(storageKey);
-  if (!name || storageKey !== `qr/${name}`) {
-    return;
-  }
-  await deleteObject(storageKey);
 }
 
 function r2Settings() {
@@ -139,9 +178,15 @@ async function deleteObject(key: string) {
 }
 
 function localPath(key: string) {
-  const name = qrFileName(key);
+  const name = imageFileName(key);
   if (!name) {
-    throw new Error("Invalid QR image key.");
+    throw new Error("Invalid image key.");
   }
-  return path.join(process.cwd(), "storage", "qr", name);
+  if (key === `${QR_PREFIX}/${name}`) {
+    return path.join(process.cwd(), "storage", QR_PREFIX, name);
+  }
+  if (key === `${DRESS_PREFIX}/${name}`) {
+    return path.join(process.cwd(), "storage", DRESS_PREFIX, name);
+  }
+  throw new Error("Invalid image key.");
 }

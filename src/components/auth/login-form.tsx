@@ -62,11 +62,18 @@ export function LoginForm() {
 
     setPending(true);
     const callbackURL = safeCallbackPath(searchParams.get("callbackUrl"));
-    const result = await authClient.signIn.email({
-      email: parsed.data.email,
-      password: parsed.data.password,
-      callbackURL,
-    });
+    let result: Awaited<ReturnType<typeof authClient.signIn.email>>;
+    try {
+      result = await authClient.signIn.email({
+        email: parsed.data.email,
+        password: parsed.data.password,
+        callbackURL,
+      });
+    } catch {
+      setPending(false);
+      setError("Could not reach the server. Stay on this site address and try again.");
+      return;
+    }
 
     if (result.error) {
       setPending(false);

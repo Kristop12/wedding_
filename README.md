@@ -104,7 +104,7 @@ The couple dashboard is an installable app. It uses a web manifest, standalone d
 
 ## Storage configuration
 
-QR images upload to local `storage/` when the R2 variables are empty, and to Cloudflare R2 when those variables are set. The image is served only with a valid invitation token or a signed-in wedding member. Gallery photos and music still use links. The app does not process payments.
+QR images and dress code reference images upload to local `storage/` when the R2 variables are empty, and to Cloudflare R2 when those variables are set. Gift QR images are served only with a valid invitation token or a signed-in wedding member. Dress code images appear on published invitations and public pages. Gallery photos and music still use links. The app does not process payments.
 
 ## Deployment
 

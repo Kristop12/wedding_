@@ -81,6 +81,7 @@ export async function loadWorkspace(weddingId: string) {
     include: {
       sections: { orderBy: { sortOrder: "asc" } },
       events: { orderBy: [{ sortOrder: "asc" }, { startAt: "asc" }] },
+      dressCodeImages: { orderBy: { sortOrder: "asc" } },
       guestGroups: { orderBy: { name: "asc" } },
       guestParties: {
         orderBy: { createdAt: "asc" },
@@ -123,6 +124,7 @@ export async function loadThemeWorkspace() {
       storyItems: { orderBy: { sortOrder: "asc" } },
       galleryItems: { orderBy: { sortOrder: "asc" } },
       faqItems: { orderBy: { sortOrder: "asc" } },
+      dressCodeImages: { orderBy: { sortOrder: "asc" } },
       giftAccounts: {
         where: { isEnabled: true },
         orderBy: { sortOrder: "asc" },
